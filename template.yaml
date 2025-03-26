@@ -5,7 +5,11 @@ Description: PySpark Lambda using Docker
 Resources:
   PySparkLambdaFunction:
     Type: AWS::Serverless::Function
+    Name: "text-processor-app"
     Properties:
       PackageType: Image
       Architectures:
         - x86_64
+      Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: .
