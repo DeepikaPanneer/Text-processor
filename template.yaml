@@ -11,6 +11,7 @@ Resources:
   PySparkLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: "text-processor" 
       PackageType: Image
       Architectures:
         - x86_64

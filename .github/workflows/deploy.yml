@@ -120,7 +120,8 @@ jobs:
         --parameter-overrides ImageUri=$ECR_REPO:$IMAGE_TAG \
         --image-repository $ECR_REPO \
         --no-confirm-changeset \
-        --no-fail-on-empty-changeset
+        --no-fail-on-empty-changeset \
+        --force-upload
 
     - name: Delete old untagged images from ECR
       run: |
