@@ -9,4 +9,3 @@ Resources:
       PackageType: Image
       Architectures:
         - x86_64
-      ImageUri: pyspark-lambda  # Will be replaced by sam deploy
