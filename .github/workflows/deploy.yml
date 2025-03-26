@@ -1,15 +1,68 @@
+# name: Deploy PySpark Lambda with Docker via SAM
+
+# on:
+#   push:  # triggers on every push, regardless of branch
+#     branches: 
+#       - main  # or use just `push:` to deploy from any branch
+
+# env: 
+#   STACK_NAME: tech-processor
+#   # IAM_ROLE: arn:aws:iam::672001523455:role/elastic-analytics-github-actions-role
+#   IAM_ROLE: arn:aws:iam::286128020352:role/text-processor-role
+#   AWS_REGION: us-east-1
+
+# permissions:
+#   id-token: write
+#   contents: read
+
+# jobs:
+#   build-deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout Code
+#       uses: actions/checkout@v4
+
+#     - name: Setup Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: '3.9'
+
+#     - name: Setup SAM CLI
+#       uses: aws-actions/setup-sam@v2
+
+#     - name: Configure AWS Credentials via OIDC
+#       uses: aws-actions/configure-aws-credentials@v4
+#       with:
+#         role-to-assume: ${{ env.IAM_ROLE }}
+#         aws-region: ${{ env.AWS_REGION }}
+
+#     - name: SAM Build
+#       run: sam build
+
+#     - name: SAM Deploy with Image Repo
+#       run: |
+#         sam deploy \
+#           --stack-name ${STACK_NAME} \
+#           --capabilities CAPABILITY_IAM \
+#           --image-repositories PySparkLambdaFunction=286128020352.dkr.ecr.us-east-1.amazonaws.com/pyspark-lambda \
+#           --no-confirm-changeset \
+#           --no-fail-on-empty-changeset
+
+
 name: Deploy PySpark Lambda with Docker via SAM
 
 on:
-  push:  # triggers on every push, regardless of branch
-    branches: 
-      - main  # or use just `push:` to deploy from any branch
+  push:
+    branches:
+      - main
 
-env: 
+env:
   STACK_NAME: tech-processor
-  # IAM_ROLE: arn:aws:iam::672001523455:role/elastic-analytics-github-actions-role
   IAM_ROLE: arn:aws:iam::286128020352:role/text-processor-role
   AWS_REGION: us-east-1
+  ECR_REPO: 286128020352.dkr.ecr.us-east-1.amazonaws.com/pyspark-lambda
+  IMAGE_TAG: latest
 
 permissions:
   id-token: write
@@ -37,14 +90,23 @@ jobs:
         role-to-assume: ${{ env.IAM_ROLE }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: SAM Build
-      run: sam build
+    - name: Login to Amazon ECR
+      run: |
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
 
-    - name: SAM Deploy with Image Repo
+    - name: Build Docker Image
+      run: |
+        docker build -t $ECR_REPO:$IMAGE_TAG ./PySparkLambdaFunction
+
+    - name: Push Image to ECR
+      run: |
+        docker push $ECR_REPO:$IMAGE_TAG
+
+    - name: SAM Deploy with Image URI
       run: |
         sam deploy \
-          --stack-name ${STACK_NAME} \
+          --stack-name $STACK_NAME \
           --capabilities CAPABILITY_IAM \
-          --image-repositories PySparkLambdaFunction=286128020352.dkr.ecr.us-east-1.amazonaws.com/pyspark-lambda \
+          --parameter-overrides ImageUri=$ECR_REPO:$IMAGE_TAG \
           --no-confirm-changeset \
           --no-fail-on-empty-changeset

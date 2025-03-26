@@ -2,15 +2,16 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: PySpark Lambda using Docker
 
+Parameters:
+  ImageUri:
+    Type: String
+    Description: URI of the Docker image in ECR
+
 Resources:
   PySparkLambdaFunction:
-    Type: AWS::Serverless::Function 
-    Metadata:
-      Dockerfile: Dockerfile
-      DockerContext: ./PySparkLambdaFunction
-      DockerTag: latest
+    Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
       Architectures:
         - x86_64
-      ImageUri: pyspark-lambda  # This is resolved automatically
+      ImageUri: !Ref ImageUri
