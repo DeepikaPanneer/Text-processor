@@ -1,0 +1,50 @@
+name: Deploy PySpark Lambda with Docker via SAM
+
+on:
+  push:  # triggers on every push, regardless of branch
+    branches: 
+      - main  # or use just `push:` to deploy from any branch
+
+env: 
+  STACK_NAME: tech-processor
+  # IAM_ROLE: arn:aws:iam::672001523455:role/elastic-analytics-github-actions-role
+  IAM_ROLE: arn:aws:iam::286128020352:role/text-processor-role
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Setup SAM CLI
+      uses: aws-actions/setup-sam@v2
+
+    - name: Configure AWS Credentials via OIDC
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.IAM_ROLE }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: SAM Build
+      run: sam build
+
+    - name: SAM Deploy with Image Repo
+      run: |
+        sam deploy \
+          --stack-name ${STACK_NAME} \
+          --capabilities CAPABILITY_IAM \
+          --image-repositories PySparkLambdaFunction=286128020352.dkr.ecr.us-east-1.amazonaws.com/pyspark-lambda \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset
