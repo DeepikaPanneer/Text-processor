@@ -10,6 +10,6 @@ Resources:
       PackageType: Image
       Architectures:
         - x86_64
-      Metadata:
-      Dockerfile: Dockerfile
-      DockerContext: .
+    Metadata:
+    Dockerfile: Dockerfile
+    DockerContext: .
