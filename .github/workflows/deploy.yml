@@ -105,8 +105,10 @@ jobs:
     - name: SAM Deploy with Image URI
       run: |
         sam deploy \
-          --stack-name $STACK_NAME \
-          --capabilities CAPABILITY_IAM \
-          --parameter-overrides ImageUri=$ECR_REPO:$IMAGE_TAG \
-          --no-confirm-changeset \
-          --no-fail-on-empty-changeset
+        --stack-name $STACK_NAME \
+        --capabilities CAPABILITY_IAM \
+        --parameter-overrides ImageUri=$ECR_REPO:$IMAGE_TAG \
+        --image-repository $ECR_REPO \
+        --no-confirm-changeset \
+        --no-fail-on-empty-changeset
+
